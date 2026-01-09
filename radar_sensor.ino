@@ -14,6 +14,7 @@ File dataFile;
 
 // Variables
 unsigned long previousMillis = 0;
+bool sdInitialized = false;
 
 void setup() {
   // Initialize serial for debugging
@@ -34,13 +35,33 @@ void setup() {
   lcd.print("  SD Init...");
   if (!SD.begin(SD_CS_PIN)) {
     lcd.setCursor(0, 1);
-    lcd.print("SD FAIL!");
-    Serial.println("SD card initialization failed!");
-    // Continue without SD functionality
+    lcd.print("NO SD CARD!");
+    Serial.println("SD card initialization failed! System will continue without logging.");
+    sdInitialized = false;
   } else {
     lcd.setCursor(0, 1);
     lcd.print("SD OK!");
     Serial.println("SD card initialized successfully!");
+    sdInitialized = true;
+    
+    // Create or append to the log file with header if needed
+    File headerFile = SD.open("radarlog.txt", FILE_READ);
+    bool fileExists = headerFile;
+    if(headerFile) {
+      headerFile.close();
+    }
+    
+    // Only write header if file doesn't exist yet
+    if(!fileExists) {
+      File dataFile = SD.open("radarlog.txt", FILE_WRITE);
+      if(dataFile) {
+        dataFile.println("Timestamp(ms),Date,Time,Distance(cm)");
+        dataFile.close();
+        Serial.println("Log file created with header successfully");
+      } else {
+        Serial.println("Error creating log file with header");
+      }
+    }
     delay(500);
   }
   
@@ -186,23 +207,96 @@ void loop() {
   Serial.println(bars);
 }
 
+// Helper function to format time values with leading zeros
+String formatTimeValue(int value) {
+  if(value < 10) {
+    return "0" + String(value);
+  }
+  return String(value);
+}
+
+// Function to get formatted date/time string based on millis()
+String getFormattedDateTime(unsigned long currentTime) {
+  // Calculate time based on milliseconds since start
+  unsigned long seconds = currentTime / 1000;
+  unsigned long minutes = seconds / 60;
+  unsigned long hours = minutes / 60;
+  
+  // For a more realistic time, we'll simulate a start time
+  // In a real application, you'd use an RTC module
+  int simulatedHours = (hours % 24);  // Cycling every 24 hours
+  int simulatedMinutes = (minutes % 60);
+  int simulatedSeconds = (seconds % 60);
+  
+  String timeString = formatTimeValue(simulatedHours) + ":" + 
+                     formatTimeValue(simulatedMinutes) + ":" + 
+                     formatTimeValue(simulatedSeconds);
+                     
+  return timeString;
+}
+
+// Function to get formatted date string based on millis()
+String getFormattedDate(unsigned long currentTime) {
+  // Calculate day based on milliseconds since start
+  unsigned long seconds = currentTime / 1000;
+  unsigned long minutes = seconds / 60;
+  unsigned long hours = minutes / 60;
+  unsigned long days = hours / 24;
+  
+  // For a more realistic date, simulate days since 2025/01/01
+  int simulatedDay = ((int)days % 28) + 1;  // Days 1-28 (simplified)
+  int simulatedMonth = 1;  // January
+  int simulatedYear = 2025;
+  
+  String dateString = String(simulatedYear) + "-" + 
+                     formatTimeValue(simulatedMonth) + "-" + 
+                     formatTimeValue(simulatedDay);
+                     
+  return dateString;
+}
+
 // Function to log data to SD card
 void logToSD(int distance) {
-  dataFile = SD.open("radarlog.txt", FILE_WRITE);
-  
-  if(dataFile) {
-    // Write timestamp and distance to file
-    dataFile.print(millis());
-    dataFile.print(",");
-    dataFile.println(distance);
-    dataFile.close();
-    Serial.print("Logged: ");
-    Serial.print(millis());
-    Serial.print("ms, ");
-    Serial.print(distance);
-    Serial.println("cm");
-  } else {
-    Serial.println("Error opening log file for writing");
+  if(sdInitialized) {  // Only attempt to log if SD was initially initialized
+    // Test if SD card is still present by attempting to begin again
+    if(!SD.begin(SD_CS_PIN)) {
+      Serial.println("SD card removed during operation!");
+      sdInitialized = false;
+      lcd.clear();
+      lcd.print("SD CARD REMOVED!");
+      lcd.setCursor(0, 1);
+      lcd.print("LOGGING STOPPED");
+      delay(2000);
+      lcd.clear();
+      return;
+    }
+    
+    dataFile = SD.open("radarlog.txt", FILE_WRITE);
+    
+    if(dataFile) {
+      // Write timestamp, date, time, and distance to file
+      unsigned long currentTime = millis();
+      dataFile.print(currentTime);           // Timestamp in ms
+      dataFile.print(",");
+      dataFile.print(getFormattedDate(currentTime));  // Date
+      dataFile.print(",");
+      dataFile.print(getFormattedDateTime(currentTime));  // Time
+      dataFile.print(",");
+      dataFile.println(distance);            // Distance in cm
+      
+      dataFile.close();
+      Serial.print("Logged: ");
+      Serial.print(currentTime);
+      Serial.print("ms, ");
+      Serial.print(getFormattedDate(currentTime));
+      Serial.print(" ");
+      Serial.print(getFormattedDateTime(currentTime));
+      Serial.print(", ");
+      Serial.print(distance);
+      Serial.println("cm");
+    } else {
+      Serial.println("Error opening log file for writing");
+    }
   }
 }
 

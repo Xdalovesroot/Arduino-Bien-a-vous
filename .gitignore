@@ -1,29 +1,71 @@
 ```
-# Arduino build artifacts
-*.hex
-*.elf
-*.bin
-*.map
-build/
-Build/
+# Compiled and build artifacts
+*.pyc
+__pycache__/
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.out
 
 # Dependencies
-libraries/
+.venv/
+venv/
+node_modules/
+dist/
+build/
+target/
+.gradle/
 
-# Temporary files
+# Logs and temp files
+*.log
 *.tmp
 *.swp
-*~
-
-# Logs
-*.log
+*.swo
 
 # Environment
 .env
 .env.local
 *.env.*
 
-# IDE
+# Editors
 .vscode/
 .idea/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Python specific
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+*.so
+.Python
+*.egg-info/
+.eggs/
+
+# Arduino specific
+*.hex
+*.bin
+*.elf
+*.map
+core.a
+*.cpp.o
+*.S.o
+*.d
+*.size
+.libs/
+lib/
+*.orig
+*.~
 ```
