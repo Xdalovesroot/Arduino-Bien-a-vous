@@ -1,59 +1,44 @@
-# Radar Sensor with SD Logging
+# Kaboom Radar MkII
 
-This Arduino project implements an ultrasonic radar system with RGB LCD display, buzzer alerts, and automatic SD card logging of sensor readings.
+An advanced ultrasonic radar system with LCD display, buzzer alerts, and SD card logging.
 
 ## Features
 
-- Ultrasonic distance measurement with HC-SR04 sensor
-- RGB LCD display showing distance and bar graph
-- Visual alerts via color-changing backlight
-- Audible alerts via buzzer with distance-based tones
-- Automatic logging to SD card every second
-- Startup animation and system status indicators
+- HC-SR04 ultrasonic sensor for distance measurement
+- RGB LCD display with visual feedback
+- Configurable buzzer alerts based on distance
+- Automatic SD card logging every second
+- Enhanced startup sequence with progress animation
+- Real-time distance visualization with bar graph
+- Improved error handling for SD card operations
 
 ## Hardware Requirements
 
-- Arduino Uno/Nano/Pro Mini
-- HC-SR04 Ultrasonic Sensor
+- Arduino Uno/Nano
+- HC-SR04 ultrasonic sensor
 - RGB LCD (16x2) with I2C interface
 - Buzzer
 - Adafruit-compatible SD card shield
-- Jumper wires and breadboard
+- Jumper wires
 
-## Pin Configuration
+## Pin Connections
 
-- **Ultrasonic Sensor**: Pin 7 (Digital)
-- **Buzzer**: Pin 8 (Digital)
-- **SD Card CS**: Pin 4 (Digital)
-- **RGB LCD**: Uses I2C (SDA/A4, SCL/A5)
+- Ultrasonic sensor: Pin 7 (digital)
+- Buzzer: Pin 8 (digital)
+- SD Card CS: Pin 4 (standard for Adafruit shields)
+- LCD: I2C (A4/A5 or SDA/SCL pins)
 
-## Functionality
+## Logging Format
 
-The system continuously measures distance using the ultrasonic sensor and displays:
-- Current distance reading on the first line of the LCD
-- Bar graph representation on the second line
-- Backlight color changes based on distance:
-  - Red: < 30cm (Danger zone)
-  - Orange: 30-80cm (Caution zone) 
-  - Green: > 80cm (Safe zone)
-- Buzzer alerts that vary in frequency based on distance
-- Automatic logging of distance readings to "radarlog.txt" on SD card every second
+The system automatically logs distance readings to "radarlog.txt" on the SD card in CSV format:
+- Timestamp (milliseconds since start)
+- Date (simulated based on uptime)
+- Time (simulated based on uptime)
+- Distance (cm)
 
-## Data Logging Format
+## Error Handling
 
-The SD card stores data in CSV format:
-```
-Time(ms),Distance(cm)
-1000,15
-2000,14
-3000,16
-...
-```
-
-## Dependencies
-
-This project requires the following libraries:
-- Wire.h (for I2C communication)
-- SPI.h (for SD card communication)
-- SD.h (for SD card operations)
-- Custom libraries: rgb_lcd.h, Ultrasonic.h
+- Shows "NO SD CARD!" on LCD if SD card is not detected during startup
+- Displays "SD CARD REMOVED!" if SD card is removed during operation
+- System continues to function normally without SD card
+- All other functionality remains operational regardless of SD card status
